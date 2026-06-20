@@ -10,10 +10,14 @@ it says things like:
 …and if you want the hard details, one click reveals download/upload speeds, latency,
 jitter, the exact thresholds used, and how the measurement works.
 
+The entire site is a **single self-contained `index.html`** (HTML, CSS and JS inlined), so
+it runs anywhere — open it straight from disk, host it, or view it through a simple HTML
+preview, with nothing extra to load.
+
 ## How to use it
 
-Just open `index.html` in any modern browser and click **Test my connection**. That's it —
-there's no build step, no server, and no install.
+Open `index.html` in any modern browser and click **Test my connection**. No build step,
+no server, no install.
 
 To serve it locally (optional):
 
@@ -47,12 +51,6 @@ The measurement runs entirely in your browser using Cloudflare's public speed en
 - **Jitter:** the average wobble between those latency samples.
 
 Nothing is sent to or stored by this site — there is no backend.
-
-## Files
-
-- `index.html` — markup and content
-- `style.css` — styling
-- `app.js` — measurement engine and plain-English verdict logic
 
 ## Notes & limitations
 
