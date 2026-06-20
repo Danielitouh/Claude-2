@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
+      - main
       - claude/wifi-strength-indicator-cafr9w
   workflow_dispatch:
 
