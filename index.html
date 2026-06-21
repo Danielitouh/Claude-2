@@ -372,6 +372,17 @@ td .pill.no { color: var(--red); }
 .demand-bar span.ok { background: linear-gradient(90deg, var(--amber), #fcd34d); }
 .demand-bar span.bad { background: linear-gradient(90deg, var(--red), #fca5a5); }
 
+.quick-add-label { color: var(--muted); font-size: 0.8rem; margin: 14px 0 8px; }
+.quick-add { display: flex; flex-wrap: wrap; gap: 8px; }
+.quick-add .chip {
+  appearance: none; cursor: pointer; font: inherit; font-size: 0.85rem;
+  color: var(--text); background: var(--bg-2); border: 1px solid var(--card-line);
+  border-radius: 99px; padding: 7px 12px; display: inline-flex; align-items: center; gap: 6px;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+.quick-add .chip:hover { border-color: var(--accent); background: var(--card); }
+.quick-add .chip:active { transform: scale(0.96); }
+
 /* ---------- Walk test & stability ---------- */
 .section-head h2 { margin: 0 0 6px; font-size: 1.25rem; }
 .section-sub { color: var(--muted); font-size: 0.92rem; margin: 0 0 14px; }
@@ -568,8 +579,11 @@ canvas.pinggraph {
       </p>
       <p class="devices-note">
         🔒 For your privacy, browsers can't scan a network to find other devices — so you add
-        them yourself. Your list is saved only on this device, never sent anywhere.
+        them with one tap below. Your list is saved only on this device, never sent anywhere.
       </p>
+
+      <p class="quick-add-label">Quick add — tap to drop one in, then rename if you like:</p>
+      <div class="quick-add" id="quickAdd"></div>
 
       <form id="addForm" class="add-form" autocomplete="off">
         <input type="text" id="deviceName" placeholder="Name — e.g. “iPhone 13”, “Living room TV”" maxlength="40" />
@@ -1149,7 +1163,21 @@ const devEls = {
   title: document.getElementById("demandTitle"),
   text: document.getElementById("demandText"),
   bar: document.getElementById("demandBar"),
+  quick: document.getElementById("quickAdd"),
 };
+
+// One-tap common devices. Names auto-dedupe (iPhone, iPhone 2, ...).
+const QUICK_PICKS = [
+  { label: "iPhone", type: "phone", activity: "browse" },
+  { label: "Android phone", type: "phone", activity: "browse" },
+  { label: "iPad / tablet", type: "tablet", activity: "hd" },
+  { label: "Laptop", type: "laptop", activity: "browse" },
+  { label: "Smart TV", type: "tv", activity: "hd" },
+  { label: "PS5 / console", type: "console", activity: "game" },
+  { label: "Streaming stick", type: "tv", activity: "hd" },
+  { label: "Smart speaker", type: "speaker", activity: "music" },
+  { label: "Smart home device", type: "iot", activity: "idle" },
+];
 
 let devices = loadDevices();
 
@@ -1171,6 +1199,14 @@ function saveDevices() {
 }
 function typeInfo(id) {
   return DEVICE_TYPES.find((t) => t.id === id) || DEVICE_TYPES[DEVICE_TYPES.length - 1];
+}
+// Avoid clashing names: "iPhone" -> "iPhone 2" -> "iPhone 3" ...
+function dedupeName(base) {
+  const names = new Set(devices.map((d) => d.name.toLowerCase()));
+  if (!names.has(base.toLowerCase())) return base;
+  let n = 2;
+  while (names.has((base + " " + n).toLowerCase())) n++;
+  return base + " " + n;
 }
 function actInfo(id) {
   return DEVICE_ACTS.find((a) => a.id === id) || DEVICE_ACTS[1];
@@ -1374,10 +1410,33 @@ devEls.form.addEventListener("submit", (e) => {
   devEls.name.focus();
 });
 
+function buildQuickAdd() {
+  devEls.quick.innerHTML = "";
+  for (const pick of QUICK_PICKS) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip";
+    btn.innerHTML = '<span>' + typeInfo(pick.type).emoji + "</span>+ " + escapeHtml(pick.label);
+    btn.addEventListener("click", () => {
+      devices.push({
+        id: uid(),
+        name: dedupeName(pick.label),
+        type: pick.type,
+        activity: pick.activity,
+        meta: "",
+      });
+      saveDevices();
+      renderDevices();
+    });
+    devEls.quick.appendChild(btn);
+  }
+}
+
 async function initDevices() {
   buildOptions(devEls.type, DEVICE_TYPES, (t) => t.emoji + "  " + t.label);
   buildOptions(devEls.act, DEVICE_ACTS, (a) => a.label);
   devEls.act.value = "browse";
+  buildQuickAdd();
 
   if (!localStorage.getItem(SEEDED_KEY)) {
     try {
