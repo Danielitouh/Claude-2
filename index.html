@@ -299,9 +299,83 @@ td .pill.no { color: var(--red); }
   font-size: 0.92rem;
 }
 
+/* ---------- Devices ---------- */
+.devices-card { margin-top: 18px; }
+.devices-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+}
+.devices-head h2 {
+  margin: 0; font-size: 1.25rem;
+  display: flex; align-items: center; gap: 10px;
+}
+.count-badge {
+  background: rgba(91, 140, 255, 0.16); color: var(--accent);
+  font-weight: 700; font-size: 0.85rem; padding: 3px 12px; border-radius: 99px;
+}
+.devices-sub { color: var(--muted); font-size: 0.92rem; margin: 8px 0 4px; }
+.devices-note { color: var(--muted); font-size: 0.78rem; margin: 0 0 16px; opacity: 0.85; }
+
+.device-list { display: grid; gap: 10px; }
+.device {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 12px;
+  background: var(--bg-2); border: 1px solid var(--card-line);
+}
+.device-emoji { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+.device-main { flex: 1; min-width: 0; }
+.device-name {
+  font-weight: 650; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.you-tag {
+  font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+  background: rgba(52, 211, 153, 0.16); color: var(--green); padding: 2px 8px; border-radius: 99px;
+}
+.device-meta { color: var(--muted); font-size: 0.82rem; margin-top: 1px; }
+.device-act {
+  appearance: none; font: inherit; font-size: 0.82rem; color: var(--text);
+  background: var(--card); border: 1px solid var(--card-line); border-radius: 8px;
+  padding: 7px 8px; flex-shrink: 0; max-width: 42vw;
+}
+.icon-btn {
+  appearance: none; cursor: pointer; background: transparent; border: none;
+  color: var(--muted); font-size: 1.05rem; line-height: 1; padding: 5px 6px; border-radius: 8px;
+  flex-shrink: 0;
+}
+.icon-btn:hover { color: var(--text); background: var(--card); }
+.icon-btn.remove:hover { color: var(--red); }
+
+.add-form {
+  margin-top: 14px; display: none; gap: 10px; flex-wrap: wrap; align-items: center;
+  background: var(--bg-2); border: 1px solid var(--card-line); border-radius: 12px; padding: 14px;
+}
+.add-form.open { display: flex; }
+.add-form input[type="text"], .add-form select {
+  font: inherit; color: var(--text); background: var(--card);
+  border: 1px solid var(--card-line); border-radius: 8px; padding: 9px 10px;
+}
+.add-form input[type="text"] { flex: 1; min-width: 150px; }
+.btn-sm { padding: 9px 18px; font-size: 0.95rem; }
+
+.demand-summary {
+  margin-top: 16px; border-radius: 12px; padding: 14px 16px;
+  background: var(--bg-2); border: 1px solid var(--card-line); border-left-width: 4px;
+}
+.demand-summary.good { border-left-color: var(--green); }
+.demand-summary.ok { border-left-color: var(--amber); }
+.demand-summary.bad { border-left-color: var(--red); }
+.demand-summary h4 { margin: 0 0 4px; font-size: 1.02rem; }
+.demand-summary p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+.demand-bar { height: 8px; background: #222b48; border-radius: 99px; overflow: hidden; margin-top: 12px; }
+.demand-bar span { display: block; height: 100%; border-radius: 99px; transition: width 0.3s ease; }
+.demand-bar span.good { background: linear-gradient(90deg, var(--green), #6ee7b7); }
+.demand-bar span.ok { background: linear-gradient(90deg, var(--amber), #fcd34d); }
+.demand-bar span.bad { background: linear-gradient(90deg, var(--red), #fca5a5); }
+
 @media (max-width: 520px) {
   .metrics { grid-template-columns: repeat(2, 1fr); }
   .verdict-headline { flex-direction: column; text-align: center; }
+  .device-act { max-width: 38vw; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -418,6 +492,36 @@ td .pill.no { color: var(--red); }
 
       <div class="toggle-row">
         <button id="retestBtn" class="btn-ghost">↻ Test again</button>
+      </div>
+    </section>
+
+    <section id="devices" class="card devices-card">
+      <div class="devices-head">
+        <h2>📡 Devices on your Wi-Fi <span class="count-badge" id="deviceCount">0</span></h2>
+        <button id="addDeviceBtn" class="btn-ghost">+ Add a device</button>
+      </div>
+      <p class="devices-sub">
+        Build a list of what's on your network, set what each one is doing, and we'll tell you
+        whether your connection can keep everyone happy at the same time.
+      </p>
+      <p class="devices-note">
+        🔒 For your privacy, browsers can't scan a network to find other devices — so you add
+        them yourself. Your list is saved only on this device, never sent anywhere.
+      </p>
+
+      <form id="addForm" class="add-form" autocomplete="off">
+        <input type="text" id="deviceName" placeholder="Name — e.g. “iPhone 13”, “Living room TV”" maxlength="40" />
+        <select id="deviceType" aria-label="Device type"></select>
+        <select id="deviceAct" aria-label="What it's doing"></select>
+        <button type="submit" class="btn-primary btn-sm">Add</button>
+      </form>
+
+      <div class="device-list" id="deviceList"></div>
+
+      <div class="demand-summary ok" id="demandSummary">
+        <h4 id="demandTitle">No devices yet</h4>
+        <p id="demandText">Add the devices on your Wi-Fi to get started.</p>
+        <div class="demand-bar"><span id="demandBar" class="ok" style="width:0%"></span></div>
       </div>
     </section>
 
@@ -699,6 +803,7 @@ async function measureUpload(durationMs = 6000) {
 /* --------------------------- the run ------------------------------ */
 
 let running = false;
+let lastResult = null;
 
 async function runTest() {
   if (running) return;
@@ -771,6 +876,8 @@ function overallHeadline(r) {
 }
 
 function showResults(r) {
+  lastResult = r;
+  updateDemand();
   const h = overallHeadline(r);
   els.headlineCard.className = "verdict-headline card " + h.cls;
   els.headlineEmoji.textContent = h.emoji;
@@ -871,6 +978,303 @@ els.techToggle.addEventListener("click", () => {
     ? "Hide the technical details ▴"
     : "Show the technical details ▾";
 });
+
+/* ================================================================== *
+ * Devices on your Wi-Fi
+ * Browsers can't enumerate other machines on the LAN (by design), so
+ * this is a user-built inventory persisted in localStorage. We auto-add
+ * the *current* device using whatever the browser will tell us, then let
+ * the user name everything else and assign an activity. The combined
+ * bandwidth demand is compared against the measured download speed.
+ * ================================================================== */
+
+const DEVICES_KEY = "wifi-devices-v1";
+const SEEDED_KEY = "wifi-devices-seeded-v1";
+
+const DEVICE_TYPES = [
+  { id: "phone", label: "Phone", emoji: "📱" },
+  { id: "tablet", label: "Tablet", emoji: "📲" },
+  { id: "laptop", label: "Laptop", emoji: "💻" },
+  { id: "desktop", label: "Desktop PC", emoji: "🖥️" },
+  { id: "tv", label: "TV / streaming stick", emoji: "📺" },
+  { id: "console", label: "Game console", emoji: "🎮" },
+  { id: "speaker", label: "Smart speaker", emoji: "🔊" },
+  { id: "camera", label: "Security camera", emoji: "📷" },
+  { id: "iot", label: "Smart home / IoT", emoji: "💡" },
+  { id: "other", label: "Other", emoji: "🔌" },
+];
+
+// Typical real-world bandwidth each activity pulls, in Mbps.
+const DEVICE_ACTS = [
+  { id: "idle", label: "Idle / standby", mbps: 0.1 },
+  { id: "browse", label: "Browsing & social", mbps: 2 },
+  { id: "music", label: "Music streaming", mbps: 1 },
+  { id: "sd", label: "SD video", mbps: 3 },
+  { id: "hd", label: "HD video", mbps: 8 },
+  { id: "uhd", label: "4K video", mbps: 25 },
+  { id: "call", label: "Video call", mbps: 4 },
+  { id: "game", label: "Online gaming", mbps: 5 },
+  { id: "cloud", label: "Cloud gaming", mbps: 20 },
+  { id: "download", label: "Big download", mbps: 50 },
+];
+
+const devEls = {
+  list: document.getElementById("deviceList"),
+  count: document.getElementById("deviceCount"),
+  addBtn: document.getElementById("addDeviceBtn"),
+  form: document.getElementById("addForm"),
+  name: document.getElementById("deviceName"),
+  type: document.getElementById("deviceType"),
+  act: document.getElementById("deviceAct"),
+  summary: document.getElementById("demandSummary"),
+  title: document.getElementById("demandTitle"),
+  text: document.getElementById("demandText"),
+  bar: document.getElementById("demandBar"),
+};
+
+let devices = loadDevices();
+
+function uid() {
+  return "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+function loadDevices() {
+  try {
+    const raw = localStorage.getItem(DEVICES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) {
+    return [];
+  }
+}
+function saveDevices() {
+  try {
+    localStorage.setItem(DEVICES_KEY, JSON.stringify(devices));
+  } catch (_) {}
+}
+function typeInfo(id) {
+  return DEVICE_TYPES.find((t) => t.id === id) || DEVICE_TYPES[DEVICE_TYPES.length - 1];
+}
+function actInfo(id) {
+  return DEVICE_ACTS.find((a) => a.id === id) || DEVICE_ACTS[1];
+}
+
+/* Identify the device this browser is running on, as best the platform allows. */
+async function describeThisDevice() {
+  const ua = navigator.userAgent || "";
+  const uaData = navigator.userAgentData;
+  let platform = "";
+  let model = "";
+  let platVer = "";
+
+  if (uaData) {
+    platform = uaData.platform || "";
+    try {
+      const h = await uaData.getHighEntropyValues(["model", "platformVersion"]);
+      model = (h.model || "").trim();
+      platVer = h.platformVersion || "";
+    } catch (_) {}
+  }
+  const isMobile = uaData ? !!uaData.mobile : /Mobi|Android|iPhone/i.test(ua);
+
+  let type = "other";
+  let name = "This device";
+  let meta = "";
+
+  if (/iPhone/i.test(ua)) {
+    type = "phone"; name = "iPhone";
+    const m = ua.match(/OS (\d+(?:_\d+)*)/);
+    if (m) meta = "iOS " + m[1].replace(/_/g, ".");
+  } else if (/iPad/i.test(ua) || (platform === "macOS" && navigator.maxTouchPoints > 1 && isMobile)) {
+    type = "tablet"; name = "iPad";
+  } else if (platform === "Android" || /Android/i.test(ua)) {
+    type = isMobile ? "phone" : "tablet";
+    name = model || "Android device";
+    const v = platVer ? platVer.split(".")[0] : (ua.match(/Android (\d+)/) || [])[1];
+    if (v) meta = "Android " + v;
+  } else if (platform === "Chrome OS" || /CrOS/i.test(ua)) {
+    type = "laptop"; name = "Chromebook";
+  } else if (platform === "Windows" || /Windows/i.test(ua)) {
+    type = "desktop"; name = "Windows PC";
+  } else if (platform === "macOS" || /Macintosh|Mac OS X/i.test(ua)) {
+    type = "laptop"; name = "Mac";
+  } else if (/Linux/i.test(ua)) {
+    type = "desktop"; name = "Linux PC";
+  }
+
+  // Append the browser as a hint when we have nothing more specific.
+  const browser = /Edg\//.test(ua) ? "Edge"
+    : /OPR\//.test(ua) ? "Opera"
+    : /Chrome\//.test(ua) ? "Chrome"
+    : /Firefox\//.test(ua) ? "Firefox"
+    : /Safari\//.test(ua) ? "Safari" : "";
+  if (browser) meta = meta ? meta + " · " + browser : browser;
+
+  return { type, name, meta };
+}
+
+function buildOptions(select, items, getLabel) {
+  select.innerHTML = "";
+  for (const it of items) {
+    const opt = document.createElement("option");
+    opt.value = it.id;
+    opt.textContent = getLabel(it);
+    select.appendChild(opt);
+  }
+}
+
+function activitySelectHTML(selectedId) {
+  let html = "";
+  for (const a of DEVICE_ACTS) {
+    const sel = a.id === selectedId ? " selected" : "";
+    html += '<option value="' + a.id + '"' + sel + ">" + a.label + "</option>";
+  }
+  return html;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
+}
+
+function renderDevices() {
+  devEls.list.innerHTML = "";
+  for (const d of devices) {
+    const t = typeInfo(d.type);
+    const row = document.createElement("div");
+    row.className = "device";
+    row.innerHTML =
+      '<div class="device-emoji">' + t.emoji + "</div>" +
+      '<div class="device-main">' +
+        '<div class="device-name">' + escapeHtml(d.name) +
+          (d.isThis ? '<span class="you-tag">This device</span>' : "") +
+        "</div>" +
+        '<div class="device-meta">' + t.label + (d.meta ? " · " + escapeHtml(d.meta) : "") + "</div>" +
+      "</div>" +
+      '<select class="device-act" data-id="' + d.id + '">' + activitySelectHTML(d.activity) + "</select>" +
+      '<button class="icon-btn rename" data-id="' + d.id + '" title="Rename">✎</button>' +
+      '<button class="icon-btn remove" data-id="' + d.id + '" title="Remove">✕</button>';
+    devEls.list.appendChild(row);
+  }
+
+  devEls.list.querySelectorAll(".device-act").forEach((sel) => {
+    sel.addEventListener("change", (e) => {
+      const d = devices.find((x) => x.id === e.target.dataset.id);
+      if (d) { d.activity = e.target.value; saveDevices(); updateDemand(); }
+    });
+  });
+  devEls.list.querySelectorAll(".rename").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const d = devices.find((x) => x.id === e.target.dataset.id);
+      if (!d) return;
+      const next = prompt("Rename this device:", d.name);
+      if (next && next.trim()) { d.name = next.trim().slice(0, 40); saveDevices(); renderDevices(); }
+    });
+  });
+  devEls.list.querySelectorAll(".remove").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      devices = devices.filter((x) => x.id !== e.target.dataset.id);
+      saveDevices();
+      renderDevices();
+      updateDemand();
+    });
+  });
+
+  devEls.count.textContent = devices.length;
+  updateDemand();
+}
+
+function updateDemand() {
+  const n = devices.length;
+  const total = devices.reduce((s, d) => s + actInfo(d.activity).mbps, 0);
+
+  let cls, title, text, pct;
+
+  if (n === 0) {
+    cls = "ok";
+    title = "No devices yet";
+    text = "Add the devices on your Wi-Fi to see whether your connection can keep up.";
+    pct = 0;
+  } else if (!lastResult || !isFinite(lastResult.down)) {
+    cls = "ok";
+    title = n + " device" + (n === 1 ? "" : "s") + " · about " + Math.round(total) + " Mbps needed right now";
+    text = "That's the combined demand of what they're doing. Run the speed test above to see if your connection can handle it.";
+    pct = Math.min(100, (total / Math.max(total, 50)) * 100);
+  } else {
+    const down = lastResult.down;
+    pct = Math.min(100, (total / down) * 100);
+    const downR = down < 100 ? down.toFixed(1) : Math.round(down);
+    const totalR = Math.round(total);
+    if (total <= down * 0.6) {
+      cls = "good";
+      title = "Plenty of headroom 👍";
+      text = "Your ~" + downR + " Mbps comfortably covers all " + n + " device" + (n === 1 ? "" : "s") +
+        " (about " + totalR + " Mbps needed right now). Everyone can keep doing their thing.";
+    } else if (total <= down) {
+      cls = "ok";
+      title = "Cutting it close ⚠️";
+      text = "What's active right now needs about " + totalR + " Mbps and you have ~" + downR +
+        " Mbps. It'll work, but one more heavy stream could tip it into buffering.";
+    } else {
+      cls = "bad";
+      title = "More than your connection can handle at once 🚧";
+      text = "These " + n + " device" + (n === 1 ? "" : "s") + " want about " + totalR +
+        " Mbps together, but you only have ~" + downR +
+        " Mbps — so expect buffering and lag when they're all busy. Pausing a 4K stream or a big download frees up the most.";
+    }
+  }
+
+  devEls.summary.className = "demand-summary " + cls;
+  devEls.title.textContent = title;
+  devEls.text.textContent = text;
+  devEls.bar.className = cls;
+  devEls.bar.style.width = pct.toFixed(0) + "%";
+}
+
+devEls.addBtn.addEventListener("click", () => {
+  const open = devEls.form.classList.toggle("open");
+  devEls.addBtn.textContent = open ? "Cancel" : "+ Add a device";
+  if (open) devEls.name.focus();
+});
+
+devEls.form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = devEls.name.value.trim();
+  if (!name) { devEls.name.focus(); return; }
+  devices.push({
+    id: uid(),
+    name: name.slice(0, 40),
+    type: devEls.type.value,
+    activity: devEls.act.value,
+    meta: "",
+  });
+  saveDevices();
+  renderDevices();
+  devEls.name.value = "";
+  devEls.type.selectedIndex = 0;
+  devEls.act.value = "browse";
+  devEls.name.focus();
+});
+
+async function initDevices() {
+  buildOptions(devEls.type, DEVICE_TYPES, (t) => t.emoji + "  " + t.label);
+  buildOptions(devEls.act, DEVICE_ACTS, (a) => a.label);
+  devEls.act.value = "browse";
+
+  if (!localStorage.getItem(SEEDED_KEY)) {
+    try {
+      const d = await describeThisDevice();
+      devices.unshift({
+        id: uid(), name: d.name, type: d.type, meta: d.meta, activity: "browse", isThis: true,
+      });
+      saveDevices();
+    } catch (_) {}
+    try { localStorage.setItem(SEEDED_KEY, "1"); } catch (_) {}
+  }
+
+  renderDevices();
+}
+
+initDevices();
   </script>
 </body>
 </html>

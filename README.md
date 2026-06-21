@@ -40,6 +40,21 @@ video calls, a busy work-from-home household, online gaming, and **cloud gaming 
 and 4K** (PS Plus Premium, GeForce Now, Xbox Cloud) — and grades each one **Yes / Maybe /
 No** with a one-line explanation.
 
+## Devices on your Wi-Fi
+
+A **Devices** panel lets you keep a list of what's on your network (e.g. "iPhone 13",
+"Living room TV") and pick what each one is doing. It adds up the bandwidth they need and
+compares it to your measured speed, telling you in plain English whether your connection
+can keep everyone happy at once.
+
+> **Why is it manual?** For privacy, browsers are not allowed to scan a network and
+> enumerate other devices — that ability is reserved for your router's admin page or a
+> native app. So you add devices yourself; the list is saved only on your device (via
+> `localStorage`) and never leaves it. The app *does* auto-detect the current device using
+> the browser's user-agent hints — it fills in the model where the platform exposes it
+> (Android/Chromebook), while iPhone/iPad only report as "iPhone"/"iPad", which you can
+> rename.
+
 ## How the test works
 
 The measurement runs entirely in your browser using Cloudflare's public speed endpoints
