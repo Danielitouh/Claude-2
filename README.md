@@ -55,6 +55,24 @@ can keep everyone happy at once.
 > (Android/Chromebook), while iPhone/iPad only report as "iPhone"/"iPad", which you can
 > rename.
 
+## Wi-Fi walk test (movement tracking)
+
+Walk around your home with the page open and the live signal meter updates as you move. Tap
+**Capture spot** in each room to log it, and the app ranks every spot from strongest to
+weakest, tells you what each can handle (4K, HD, browsing, or dead zone), and points out
+where an extender or mesh node would help most. Spots are saved on your device.
+
+> Note: this is signal-strength mapping as you move — not radar-style "motion sensing."
+> Detecting people moving through Wi-Fi interference needs raw radio data from special
+> hardware and isn't possible in a browser.
+
+## Connection stability check
+
+A live 20-second ping graph that shows how *steady* your connection is — drawing each ping,
+tracking jitter and dropped responses, and grading the result in plain English ("rock
+solid", "mostly stable", or "unstable"). Stability is what makes or breaks video calls and
+online games even when raw speed looks fine.
+
 ## How the test works
 
 The measurement runs entirely in your browser using Cloudflare's public speed endpoints

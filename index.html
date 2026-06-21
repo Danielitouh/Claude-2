@@ -372,10 +372,72 @@ td .pill.no { color: var(--red); }
 .demand-bar span.ok { background: linear-gradient(90deg, var(--amber), #fcd34d); }
 .demand-bar span.bad { background: linear-gradient(90deg, var(--red), #fca5a5); }
 
+/* ---------- Walk test & stability ---------- */
+.section-head h2 { margin: 0 0 6px; font-size: 1.25rem; }
+.section-sub { color: var(--muted); font-size: 0.92rem; margin: 0 0 14px; }
+
+.live-meter { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.live-score { font-size: 2.6rem; font-weight: 700; letter-spacing: -0.03em; }
+.live-score small { font-size: 0.9rem; color: var(--muted); font-weight: 500; margin-left: 2px; }
+.live-bar {
+  flex: 1; min-width: 160px; height: 14px; background: #222b48;
+  border-radius: 99px; overflow: hidden;
+}
+.live-bar span {
+  display: block; height: 100%; width: 0%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--red), var(--amber), var(--green));
+  transition: width 0.4s ease;
+}
+.live-detail { color: var(--muted); font-size: 0.86rem; margin: 8px 0 0; min-height: 1.2em; }
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+
+.spot-list { display: grid; gap: 10px; margin-top: 16px; }
+.spot {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px;
+  background: var(--bg-2); border: 1px solid var(--card-line); border-left-width: 4px;
+}
+.spot.great { border-left-color: var(--green); }
+.spot.ok { border-left-color: var(--amber); }
+.spot.weak { border-left-color: #fb923c; }
+.spot.dead { border-left-color: var(--red); }
+.spot-rank { font-weight: 700; color: var(--muted); width: 1.5em; text-align: center; flex-shrink: 0; }
+.spot-main { flex: 1; min-width: 0; }
+.spot-name { font-weight: 650; }
+.spot-meta { color: var(--muted); font-size: 0.82rem; margin-top: 1px; }
+.spot-score { font-weight: 700; font-size: 1.15rem; flex-shrink: 0; }
+.spot-remove {
+  appearance: none; cursor: pointer; background: transparent; border: none;
+  color: var(--muted); font-size: 1.05rem; padding: 4px 6px; border-radius: 8px; flex-shrink: 0;
+}
+.spot-remove:hover { color: var(--red); }
+
+canvas.pinggraph {
+  width: 100%; height: 120px; background: var(--bg-2); border: 1px solid var(--card-line);
+  border-radius: 12px; display: block; margin-top: 14px;
+}
+.stab-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+.stab-stat {
+  background: var(--bg-2); border: 1px solid var(--card-line); border-radius: 10px;
+  padding: 10px; text-align: center;
+}
+.stab-stat b { display: block; font-size: 1.2rem; }
+.stab-stat small { color: var(--muted); font-size: 0.7rem; letter-spacing: 0.03em; }
+.stab-grade {
+  margin-top: 12px; border-radius: 12px; padding: 14px 16px;
+  background: var(--bg-2); border: 1px solid var(--card-line); border-left-width: 4px;
+}
+.stab-grade.good { border-left-color: var(--green); }
+.stab-grade.ok { border-left-color: var(--amber); }
+.stab-grade.bad { border-left-color: var(--red); }
+.stab-grade h4 { margin: 0 0 4px; font-size: 1.02rem; }
+.stab-grade p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
 @media (max-width: 520px) {
   .metrics { grid-template-columns: repeat(2, 1fr); }
   .verdict-headline { flex-direction: column; text-align: center; }
   .device-act { max-width: 38vw; }
+  .stab-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -522,6 +584,63 @@ td .pill.no { color: var(--red); }
         <h4 id="demandTitle">No devices yet</h4>
         <p id="demandText">Add the devices on your Wi-Fi to get started.</p>
         <div class="demand-bar"><span id="demandBar" class="ok" style="width:0%"></span></div>
+      </div>
+    </section>
+
+    <section id="walktest" class="card devices-card">
+      <div class="section-head"><h2>📍 Wi-Fi walk test</h2></div>
+      <p class="section-sub">
+        Find your dead zones. Tap <strong>Start</strong>, then walk around your home with this
+        page open — the signal meter updates as you move. In each room, tap
+        <strong>Capture spot</strong> to log it, and we'll rank where your Wi-Fi is strong and weak.
+      </p>
+
+      <div class="live-meter">
+        <div class="live-score"><span id="liveScore">—</span><small>/100</small></div>
+        <div class="live-bar"><span id="liveBar"></span></div>
+      </div>
+      <p class="live-detail" id="liveDetail">Press Start to begin measuring your signal.</p>
+
+      <div class="btn-row">
+        <button id="walkStart" class="btn-primary btn-sm">Start</button>
+        <button id="walkCapture" class="btn-ghost" disabled>📍 Capture spot</button>
+        <button id="walkClear" class="btn-ghost">Clear spots</button>
+      </div>
+
+      <div class="spot-list" id="spotList"></div>
+
+      <div class="demand-summary ok" id="walkSummary" hidden>
+        <h4 id="walkSumTitle"></h4>
+        <p id="walkSumText"></p>
+      </div>
+
+      <p class="devices-note">📶 This measures live as you move, so it uses a little data each
+        cycle (a few MB). Tap <strong>Stop</strong> when you're done walking.</p>
+    </section>
+
+    <section id="stability" class="card devices-card">
+      <div class="section-head"><h2>📈 Connection stability check</h2></div>
+      <p class="section-sub">
+        Speed isn't everything — a connection that wobbles ruins video calls and online games
+        even when it's "fast". This watches your ping for 20 seconds and grades how steady it is.
+      </p>
+
+      <div class="btn-row" style="margin-top:0;">
+        <button id="stabStart" class="btn-primary btn-sm">Run 20-second check</button>
+      </div>
+
+      <canvas id="pingGraph" class="pinggraph" width="700" height="120"></canvas>
+
+      <div class="stab-stats">
+        <div class="stab-stat"><b id="stCur">—</b><small>NOW (ms)</small></div>
+        <div class="stab-stat"><b id="stAvg">—</b><small>AVG (ms)</small></div>
+        <div class="stab-stat"><b id="stJit">—</b><small>JITTER (ms)</small></div>
+        <div class="stab-stat"><b id="stLoss">—</b><small>DROPPED</small></div>
+      </div>
+
+      <div class="stab-grade ok" id="stabGrade" hidden>
+        <h4 id="stabGradeTitle"></h4>
+        <p id="stabGradeText"></p>
       </div>
     </section>
 
@@ -1275,6 +1394,370 @@ async function initDevices() {
 }
 
 initDevices();
+
+/* ================================================================== *
+ * Shared helpers for the live features
+ * ================================================================== */
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function fetchWithTimeout(url, ms) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { cache: "no-store", signal: ctrl.signal }).finally(() =>
+    clearTimeout(t)
+  );
+}
+
+/* ================================================================== *
+ * Wi-Fi walk test — "movement tracking"
+ * Continuously measures a lightweight signal score as you move around,
+ * and lets you capture each room to map strong vs. weak spots.
+ * ================================================================== */
+
+const SPOTS_KEY = "wifi-spots-v1";
+
+const walkEls = {
+  score: document.getElementById("liveScore"),
+  bar: document.getElementById("liveBar"),
+  detail: document.getElementById("liveDetail"),
+  start: document.getElementById("walkStart"),
+  capture: document.getElementById("walkCapture"),
+  clear: document.getElementById("walkClear"),
+  list: document.getElementById("spotList"),
+  summary: document.getElementById("walkSummary"),
+  sumTitle: document.getElementById("walkSumTitle"),
+  sumText: document.getElementById("walkSumText"),
+};
+
+let walking = false;
+let walkLast = null;
+let spots = loadSpots();
+
+function loadSpots() {
+  try {
+    const raw = localStorage.getItem(SPOTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) {
+    return [];
+  }
+}
+function saveSpots() {
+  try { localStorage.setItem(SPOTS_KEY, JSON.stringify(spots)); } catch (_) {}
+}
+
+// Combine throughput + latency into a 0–100 signal score.
+function signalScore(down, ping) {
+  if (!isFinite(down)) return 0;
+  const tp = Math.min(65, (down / 80) * 65); // saturates near 80 Mbps
+  let lat;
+  if (isFinite(ping)) {
+    const clamped = Math.min(200, Math.max(20, ping));
+    lat = 35 * (1 - (clamped - 20) / 180); // 35 pts at <=20ms, 0 at >=200ms
+  } else {
+    lat = 8;
+  }
+  return Math.round(Math.min(100, Math.max(0, tp + lat)));
+}
+
+function scoreTier(s) {
+  if (s >= 75) return { cls: "great", label: "Great", can: "4K streaming & cloud gaming" };
+  if (s >= 50) return { cls: "ok", label: "Good", can: "HD streaming & video calls" };
+  if (s >= 25) return { cls: "weak", label: "Weak", can: "browsing & SD video only" };
+  return { cls: "dead", label: "Dead zone", can: "barely usable" };
+}
+
+// A quick, low-data probe: a handful of pings + a small download.
+async function quickProbe() {
+  const pings = [];
+  for (let i = 0; i < 4; i++) {
+    const s = performance.now();
+    try {
+      await fetchWithTimeout(DOWN_URL + "0&w=" + Date.now() + "-" + i, 2500);
+      pings.push(performance.now() - s);
+    } catch (_) {}
+  }
+  pings.sort((a, b) => a - b);
+  const ping = pings.length ? pings[Math.floor(pings.length / 2)] : NaN;
+
+  let bytes = 0;
+  const start = performance.now();
+  try {
+    const resp = await fetchWithTimeout(DOWN_URL + 2 * 1024 * 1024 + "&t=" + Date.now(), 8000);
+    const reader = resp.body.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.length;
+    }
+  } catch (_) {}
+  const sec = (performance.now() - start) / 1000;
+  const down = sec > 0 && bytes > 0 ? (bytes * 8) / sec / 1e6 : NaN;
+  return { down, ping };
+}
+
+function renderLiveMeter(r) {
+  const s = r ? r.score : 0;
+  walkEls.score.textContent = r ? s : "—";
+  walkEls.bar.style.width = s + "%";
+  if (r) {
+    const downTxt = isFinite(r.down) ? (r.down < 100 ? r.down.toFixed(1) : Math.round(r.down)) + " Mbps" : "—";
+    const pingTxt = isFinite(r.ping) ? Math.round(r.ping) + " ms ping" : "no response";
+    walkEls.detail.textContent = scoreTier(s).label + " signal here · ≈ " + downTxt + " · " + pingTxt;
+  }
+}
+
+async function walkLoop() {
+  while (walking) {
+    walkEls.detail.textContent = "Measuring…";
+    const r = await quickProbe();
+    if (!walking) break;
+    walkLast = { down: r.down, ping: r.ping, score: signalScore(r.down, r.ping) };
+    renderLiveMeter(walkLast);
+    walkEls.capture.disabled = false;
+    await sleep(1000);
+  }
+}
+
+function setWalking(on) {
+  walking = on;
+  walkEls.start.textContent = on ? "Stop" : "Start";
+  walkEls.start.classList.toggle("btn-primary", !on);
+  walkEls.start.classList.toggle("btn-ghost", on);
+  if (on) {
+    walkEls.detail.textContent = "Measuring…";
+    walkLoop();
+  } else {
+    walkEls.capture.disabled = true;
+    if (walkLast) walkEls.detail.textContent = "Stopped. Last reading: " + walkLast.score + "/100.";
+  }
+}
+
+function renderSpots() {
+  const ranked = [...spots].sort((a, b) => b.score - a.score);
+  walkEls.list.innerHTML = "";
+  ranked.forEach((sp, idx) => {
+    const tier = scoreTier(sp.score);
+    const row = document.createElement("div");
+    row.className = "spot " + tier.cls;
+    const downTxt = isFinite(sp.down) ? (sp.down < 100 ? sp.down.toFixed(1) : Math.round(sp.down)) + " Mbps" : "—";
+    const pingTxt = isFinite(sp.ping) ? Math.round(sp.ping) + " ms" : "—";
+    row.innerHTML =
+      '<div class="spot-rank">' + (idx + 1) + "</div>" +
+      '<div class="spot-main">' +
+        '<div class="spot-name">' + escapeHtml(sp.name) + "</div>" +
+        '<div class="spot-meta">' + tier.label + " — " + tier.can + " · " + downTxt + " · " + pingTxt + "</div>" +
+      "</div>" +
+      '<div class="spot-score">' + sp.score + "</div>" +
+      '<button class="spot-remove" data-id="' + sp.id + '" title="Remove">✕</button>';
+    walkEls.list.appendChild(row);
+  });
+
+  walkEls.list.querySelectorAll(".spot-remove").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      spots = spots.filter((x) => x.id !== e.target.dataset.id);
+      saveSpots();
+      renderSpots();
+    });
+  });
+
+  if (spots.length >= 2) {
+    const best = ranked[0];
+    const worst = ranked[ranked.length - 1];
+    const drop = best.score > 0 ? Math.round((1 - worst.score / best.score) * 100) : 0;
+    walkEls.summary.hidden = false;
+    walkEls.summary.className = "demand-summary " + (worst.score < 25 ? "bad" : worst.score < 50 ? "ok" : "good");
+    walkEls.sumTitle.textContent = "Strongest: " + best.name + " · Weakest: " + worst.name;
+    walkEls.sumText.textContent =
+      worst.name + " is about " + drop + "% weaker than " + best.name + ". " +
+      (worst.score < 25
+        ? "That's a dead zone — a mesh node or Wi-Fi extender there would help most."
+        : worst.score < 50
+        ? "Fine for browsing, but move closer or add an extender for streaming and calls there."
+        : "Your coverage is pretty even — nice.");
+  } else {
+    walkEls.summary.hidden = true;
+  }
+}
+
+walkEls.start.addEventListener("click", () => setWalking(!walking));
+
+walkEls.capture.addEventListener("click", () => {
+  if (!walkLast) return;
+  const suggestion = ["Living room", "Bedroom", "Kitchen", "Office", "Garage", "Bathroom", "Garden"]
+    [spots.length % 7];
+  const name = prompt("Name this spot (the room you're in):", suggestion);
+  if (!name || !name.trim()) return;
+  spots.push({
+    id: "s" + Date.now().toString(36),
+    name: name.trim().slice(0, 30),
+    score: walkLast.score,
+    down: walkLast.down,
+    ping: walkLast.ping,
+  });
+  saveSpots();
+  renderSpots();
+});
+
+walkEls.clear.addEventListener("click", () => {
+  if (spots.length && !confirm("Clear all captured spots?")) return;
+  spots = [];
+  saveSpots();
+  renderSpots();
+});
+
+renderSpots();
+
+/* ================================================================== *
+ * Connection stability check — live ping graph over 20 seconds
+ * ================================================================== */
+
+const stabEls = {
+  start: document.getElementById("stabStart"),
+  canvas: document.getElementById("pingGraph"),
+  cur: document.getElementById("stCur"),
+  avg: document.getElementById("stAvg"),
+  jit: document.getElementById("stJit"),
+  loss: document.getElementById("stLoss"),
+  grade: document.getElementById("stabGrade"),
+  gradeTitle: document.getElementById("stabGradeTitle"),
+  gradeText: document.getElementById("stabGradeText"),
+};
+
+let stabRunning = false;
+
+function drawGraph(data, total) {
+  const cv = stabEls.canvas;
+  const ctx = cv.getContext("2d");
+  const W = cv.width, H = cv.height, pad = 8;
+  ctx.clearRect(0, 0, W, H);
+
+  const vals = data.filter((v) => v != null);
+  const maxV = Math.min(400, Math.max(80, (vals.length ? Math.max(...vals) : 80) * 1.15));
+  const stepX = W / Math.max(1, total - 1);
+  const yFor = (v) => H - pad - (v / maxV) * (H - 2 * pad);
+
+  // baseline gridlines at sensible ping levels
+  ctx.strokeStyle = "rgba(255,255,255,0.06)";
+  ctx.fillStyle = "rgba(154,166,199,0.55)";
+  ctx.font = "10px -apple-system, sans-serif";
+  [50, 100, 200].forEach((g) => {
+    if (g < maxV) {
+      const y = yFor(g);
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      ctx.fillText(g + "ms", 4, y - 3);
+    }
+  });
+
+  // line
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#5b8cff";
+  let started = false;
+  data.forEach((v, i) => {
+    if (v == null) { started = false; return; }
+    const x = i * stepX, y = yFor(v);
+    if (!started) { ctx.moveTo(x, y); started = true; } else { ctx.lineTo(x, y); }
+  });
+  ctx.stroke();
+
+  // points: green/amber/red by value; red X at bottom for drops
+  data.forEach((v, i) => {
+    const x = i * stepX;
+    if (v == null) {
+      ctx.fillStyle = "#f87171";
+      ctx.fillRect(x - 2, H - pad - 3, 4, 6);
+      return;
+    }
+    ctx.fillStyle = v < 60 ? "#34d399" : v < 120 ? "#fbbf24" : "#f87171";
+    ctx.beginPath(); ctx.arc(x, yFor(v), 2.5, 0, Math.PI * 2); ctx.fill();
+  });
+}
+
+async function runStability() {
+  if (stabRunning) return;
+  stabRunning = true;
+  stabEls.start.disabled = true;
+  stabEls.start.textContent = "Measuring…";
+  stabEls.grade.hidden = true;
+
+  const total = 40, gap = 500;
+  const data = [];
+  let dropped = 0;
+
+  // warm up
+  try { await fetchWithTimeout(DOWN_URL + "0&warm=" + Date.now(), 2000); } catch (_) {}
+
+  for (let i = 0; i < total; i++) {
+    const s = performance.now();
+    let v = null;
+    try {
+      await fetchWithTimeout(DOWN_URL + "0&p=" + Date.now() + "-" + i, 2000);
+      v = performance.now() - s;
+    } catch (_) {
+      v = null;
+      dropped++;
+    }
+    data.push(v);
+
+    const good = data.filter((x) => x != null);
+    const avg = good.length ? good.reduce((a, b) => a + b, 0) / good.length : NaN;
+    let jitter = 0, jc = 0;
+    for (let k = 1; k < data.length; k++) {
+      if (data[k] != null && data[k - 1] != null) { jitter += Math.abs(data[k] - data[k - 1]); jc++; }
+    }
+    jitter = jc ? jitter / jc : 0;
+
+    stabEls.cur.textContent = v == null ? "✕" : Math.round(v);
+    stabEls.avg.textContent = isFinite(avg) ? Math.round(avg) : "—";
+    stabEls.jit.textContent = Math.round(jitter);
+    stabEls.loss.textContent = dropped;
+    drawGraph(data, total);
+
+    await sleep(gap);
+  }
+
+  gradeStability(data, dropped, total);
+  stabRunning = false;
+  stabEls.start.disabled = false;
+  stabEls.start.textContent = "Run again";
+}
+
+function gradeStability(data, dropped, total) {
+  const good = data.filter((v) => v != null);
+  const avg = good.length ? good.reduce((a, b) => a + b, 0) / good.length : NaN;
+  let jitter = 0, jc = 0;
+  for (let k = 1; k < data.length; k++) {
+    if (data[k] != null && data[k - 1] != null) { jitter += Math.abs(data[k] - data[k - 1]); jc++; }
+  }
+  jitter = jc ? jitter / jc : 0;
+  const lossPct = (dropped / total) * 100;
+
+  let cls, title, text;
+  if (dropped === 0 && jitter < 15 && avg < 60) {
+    cls = "good";
+    title = "Rock solid 🪨";
+    text = "Steady ping, no dropped responses. Great for video calls, online gaming and cloud gaming.";
+  } else if (lossPct <= 5 && jitter < 40) {
+    cls = "ok";
+    title = "Mostly stable 👍";
+    text = "Generally steady with the odd wobble" + (dropped ? " and " + dropped + " dropped response(s)" : "") +
+      ". Fine for calls and casual gaming; competitive play may feel the occasional spike.";
+  } else {
+    cls = "bad";
+    title = "Unstable ⚠️";
+    text = "Lots of variation" + (dropped ? " and " + dropped + " dropped response(s)" : "") +
+      " (jitter ≈ " + Math.round(jitter) + " ms). Expect calls to freeze and games to lag. " +
+      "Try moving closer to the router, switching to 5 GHz, or a wired connection.";
+  }
+
+  stabEls.grade.hidden = false;
+  stabEls.grade.className = "stab-grade " + cls;
+  stabEls.gradeTitle.textContent = title;
+  stabEls.gradeText.textContent = text;
+}
+
+stabEls.start.addEventListener("click", runStability);
   </script>
 </body>
 </html>
